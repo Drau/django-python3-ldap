@@ -7,6 +7,8 @@ from ldap3.core.exceptions import LDAPException
 import logging
 from contextlib import contextmanager
 from django.contrib.auth import get_user_model
+from django.utils.datastructures import MultiValueDict
+
 from django_python3_ldap.conf import settings
 from django_python3_ldap.utils import import_func, format_search_filter
 
@@ -44,16 +46,16 @@ class Connection(object):
         User = get_user_model()
 
         # Create the user data.
-        user_fields = {
+        user_fields = MultiValueDict({
             field_name: (
-                attributes[attribute_name][0]
+                attributes[attribute_name]
                 if isinstance(attributes[attribute_name], (list, tuple)) else
                 attributes[attribute_name]
             )
             for field_name, attribute_name
             in settings.LDAP_AUTH_USER_FIELDS.items()
             if attribute_name in attributes
-        }
+        })
         user_fields = import_func(settings.LDAP_AUTH_CLEAN_USER_DATA)(user_fields)
         # Create the user lookup.
         user_lookup = {
